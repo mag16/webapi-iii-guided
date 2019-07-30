@@ -45,7 +45,7 @@ router.get('/:id', validateId, async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireBody, async (req, res) => {
   try {
     const hub = await Hubs.add(req.body);
     res.status(201).json(hub);
@@ -75,7 +75,7 @@ router.delete('/:id',validateId, async (req, res) => {
   }
 });
 
-router.put('/:id', validateId, async (req, res) => {
+router.put('/:id', validateId, requireBody, async (req, res) => {
   try {
     const hub = await Hubs.update(req.params.id, req.body);
     if (hub) {
@@ -109,7 +109,7 @@ router.get('/:id/messages', async (req, res) => {
 });
 
 // add an endpoint for adding new message to a hub
-router.post('/:id/messages', async (req, res) => {
+router.post('/:id/messages', requireBody, async (req, res) => {
   const messageInfo = { ...req.body, hub_id: req.params.id };
 
   try {
@@ -127,7 +127,7 @@ router.post('/:id/messages', async (req, res) => {
 async function validateId(req, res, next) {
   try {
     const { id } = req.params;
-    console.log({ id });
+    
 
     const hub = await Hubs.findById(id);
 
@@ -142,11 +142,14 @@ async function validateId(req, res, next) {
   }
 }
 
-async function hasBody(req, res, next) {
+async function requireBody(req, res, next) {
   try {
+    if (req.body && Object.keys(req.body).length > 0) {
+      next();
+    }
 
   } catch (error) {
-    
+    res.status(400).json({ message: 'Please include a body in your request' });
   }
 
 
